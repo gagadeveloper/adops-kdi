@@ -74,9 +74,44 @@ export async function PUT(request, { params }) {
       message: 'Sample berhasil diupdate',
       data: rows[0]
     });
-    
+     
   } catch (error) {
     console.error('Error updating sample:', error);
+    return NextResponse.json(
+      { message: 'Terjadi kesalahan server' }, 
+      { status: 500 }
+    );
+  }
+}
+
+// Untuk menghapus data sample
+export async function DELETE(request, { params }) {
+  try {
+    const sampleId = params.id;
+    
+    // Query untuk menghapus sample berdasarkan ID
+    const query = `
+      DELETE FROM tracking_samples
+      WHERE id = $1
+      RETURNING id;
+    `;
+    
+    const { rows } = await pool.query(query, [sampleId]);
+    
+    if (rows.length === 0) {
+      return NextResponse.json(
+        { message: 'Sample tidak ditemukan' }, 
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({
+      message: 'Sample berhasil dihapus',
+      deletedId: rows[0].id
+    });
+    
+  } catch (error) {
+    console.error('Error deleting sample:', error);
     return NextResponse.json(
       { message: 'Terjadi kesalahan server' }, 
       { status: 500 }

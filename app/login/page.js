@@ -59,12 +59,12 @@ export default function LoginPage() {
         {/* Logo atau gambar header (opsional) */}
         <div className="flex justify-center mb-6">
           <div className="h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">SIIS</span>
+            <span className="text-white text-2xl font-bold">PTSI</span>
           </div>
         </div>
         
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Login ke SIIS
+          LOGIN ADOPS
         </h2>
         
         {error && (
@@ -134,7 +134,7 @@ export default function LoginPage() {
         
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} SIIS. All rights reserved.
+          © {new Date().getFullYear()} ADOPS-KDI. All rights reserved.
         </div>
       </div>
     </div>
