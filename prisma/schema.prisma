@@ -58,17 +58,17 @@ model Permission {
   RolePermission RolePermission[]
 }
 
-model RolePermission {
-  id           Int        @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  Role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  Permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+model Permission {
+  id             String           @id @default(dbgenerated("uuid_generate_v4()"))
+  name           String           @unique
+  description    String?
+  RolePermission RolePermission[]
 }
 
-model Role {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique @db.VarChar(50)
-  role_menus     role_menus[]
-  RolePermission RolePermission[]
+model RolePermission {
+  id           String      @id @default(dbgenerated("uuid_generate_v4()"))
+  roleId       Int
+  permissionId String
+  Role         Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  Permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 }
