@@ -3,8 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { pool } from "@/lib/db";
 import bcrypt from "bcrypt";
 
-// Define authOptions as a constant first
-export const authOptions = {
+// Define authOptions as a constant
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -108,8 +108,6 @@ export const authOptions = {
   debug: process.env.NODE_ENV === "development",
 };
 
-// Create the NextAuth handler using the authOptions
-const handler = NextAuth(authOptions);
-
-// Export the handler for both GET and POST methods
-export { handler as GET, handler as POST };
+// Create and export the handlers directly (this is the key change)
+export const GET = NextAuth(authOptions);
+export const POST = NextAuth(authOptions);
