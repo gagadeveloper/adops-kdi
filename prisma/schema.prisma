@@ -56,3 +56,25 @@ model user_menus {
   menus   menus?  @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   User    User?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
+
+model Permission {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  description    String?
+  RolePermission RolePermission[]
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  Role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  Permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+}
+
+model Role {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique @db.VarChar(50)
+  role_menus     role_menus[]
+  RolePermission RolePermission[]
+}
