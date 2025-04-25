@@ -14,15 +14,20 @@ export default function ManageTrackingSamples() {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [sampleToDelete, setSampleToDelete] = useState(null);
+  const [error, setError] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
         // Fetch user data first
         const userResponse = await fetch('/api/users');
-        if (!userResponse.ok) throw new Error('Failed to fetch user data');
+        if (!userResponse.ok) {
+          console.error('User API failed with status:', userResponse.status);
+          throw new Error('Failed to fetch user data');
+        }
         const userData = await userResponse.json();
         
         // Ensure userData is an object (single user), not an array
@@ -31,28 +36,27 @@ export default function ManageTrackingSamples() {
         console.log("Current user data:", currentUser);
         setUserData(currentUser);
         
-        // Only proceed if the user is a super admin
-        if (currentUser?.roleId !== 1) {
-          console.error('Access denied: User is not a super admin');
-          router.push('/dashboard/manage-trackingsamples'); // Redirect non-super admins
-          return;
-        }
-        
         // Fetch all samples
+        console.log("Fetching samples...");
         const samplesResponse = await fetch('/api/tracking-samples');
-        if (!samplesResponse.ok) throw new Error('Failed to fetch samples');
+        if (!samplesResponse.ok) {
+          console.error('Samples API failed with status:', samplesResponse.status);
+          throw new Error('Failed to fetch samples');
+        }
         const samplesData = await samplesResponse.json();
+        console.log("Samples data received:", samplesData);
         setSamples(samplesData);
         
       } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error in fetchData:', error);
+        setError(error.message || 'Failed to load data');
       } finally {
         setLoading(false);
       }
     };
   
     fetchData();
-  }, [router]);
+  }, []);
 
   const getStepStatus = (sample) => {
     if (sample.coa_issued_date) return 6;
@@ -90,11 +94,15 @@ export default function ManageTrackingSamples() {
     if (!sampleToDelete) return;
     
     try {
+      setError(null);
       const response = await fetch(`/api/tracking-samples/${sampleToDelete.id}`, {
         method: 'DELETE',
       });
       
-      if (!response.ok) throw new Error('Failed to delete sample');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete sample');
+      }
       
       // Remove the deleted sample from the state
       setSamples(samples.filter(sample => sample.id !== sampleToDelete.id));
@@ -104,13 +112,13 @@ export default function ManageTrackingSamples() {
       setSampleToDelete(null);
     } catch (error) {
       console.error('Error deleting sample:', error);
-      // You might want to show an error message to the user here
+      setError(error.message || 'Failed to delete sample');
     }
   };
 
-  // const handleAddSample = () => {
-  //   router.push('/dashboard/adopsi/tracking-samples/step1');
-  // };
+  const handleAddSample = () => {
+    router.push('/dashboard/manage-trackingsamples/create');
+  };
 
   const filteredSamples = samples.filter(sample => {
     const searchLower = searchTerm.toLowerCase();
@@ -154,13 +162,19 @@ export default function ManageTrackingSamples() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Manajemen Tracking Samples</h1>
         
-        {/* <button
+        <button
           onClick={handleAddSample}
           className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" /> Tambah Sample
-        </button> */}
+        </button>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-100 border border-red-300 text-red-700 p-4 rounded-md">
+          <p>Error: {error}</p>
+        </div>
+      )}
 
       <div className="mb-6 bg-white p-4 rounded-md shadow">
         <div className="flex items-center gap-2">

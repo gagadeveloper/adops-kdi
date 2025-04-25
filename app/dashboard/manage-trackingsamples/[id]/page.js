@@ -1,43 +1,52 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { 
-  ArrowLeft, Truck, PackageCheck, FlaskConical, FileCheck, 
-  ClipboardCheck, CheckCircle, Download, Calendar, User, Package, 
-  Info, FileText, CheckSquare
+  ArrowLeft, Edit, 
+  PackageCheck, Truck, FlaskConical, FileCheck, ClipboardCheck, CheckCircle
 } from 'lucide-react';
 
-export default function SampleDetailView() {
+export default function ViewTrackingSample({ params }) {
+  const { id } = params;
+  const router = useRouter();
   const [sample, setSample] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const router = useRouter();
-  const params = useParams();
 
   useEffect(() => {
-    const fetchSampleDetails = async () => {
+    const fetchSample = async () => {
       setLoading(true);
       try {
-        // Use the sample ID from the route params
-        const sampleId = params.id;
+        const response = await fetch(`/api/tracking-samples/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch sample');
+        }
         
-        // Fetch sample details from the API
-        const response = await fetch(`/api/tracking-samples/${sampleId}`);
-        if (!response.ok) throw new Error('Failed to fetch sample details');
-        
-        const data = await response.json();
-        setSample(data);
-      } catch (err) {
-        console.error('Error fetching sample details:', err);
-        setError(err.message);
+        const sampleData = await response.json();
+        setSample(sampleData);
+      } catch (error) {
+        console.error('Error fetching sample:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
+    
+    if (id) {
+      fetchSample();
+    }
+  }, [id]);
 
-    fetchSampleDetails();
-  }, [params.id]);
+  const getStepStatus = (sample) => {
+    if (sample.coa_issued_date) return 6;
+    if (sample.roa_issued_date) return 5;
+    if (sample.analysis_completed_date) return 4;
+    if (sample.preparation_completed_date) return 3;
+    if (sample.received_date) return 2;
+    if (sample.sent_date) return 1;
+    return 0; // Newly created sample
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -48,362 +57,185 @@ export default function SampleDetailView() {
     });
   };
 
-  const handleBackClick = () => {
+  const handleBack = () => {
     router.back();
   };
 
-  const handleDownloadCOA = () => {
-    // Logic to download COA document
-    if (sample?.coa_issued_date) {
-      // Replace with actual download functionality
-      alert('Downloading COA document...');
-    }
+  const handleEdit = () => {
+    router.push(`/dashboard/manage-trackingsamples/edit/${id}`);
   };
-
-  const handleDownloadROA = () => {
-    // Logic to download ROA document
-    if (sample?.roa_issued_date) {
-      // Replace with actual download functionality
-      alert('Downloading ROA document...');
-    }
-  };
-
-  const getStepStatus = (sample) => {
-    if (!sample) return 0;
-    if (sample.coa_issued_date) return 6;
-    if (sample.roa_issued_date) return 5;
-    if (sample.analysis_completed_date) return 4;
-    if (sample.preparation_completed_date) return 3;
-    if (sample.received_date) return 2;
-    if (sample.sent_date) return 1;
-    return 0;
-  };
-
-  const currentStatus = sample ? getStepStatus(sample) : 0;
-
-  const getStatusText = (status) => {
-    switch(status) {
-      case 0: return 'Pendaftaran Sample';
-      case 1: return 'Sample Dikirim';
-      case 2: return 'Sample Diterima';
-      case 3: return 'Preparasi Selesai';
-      case 4: return 'Analisa Selesai';
-      case 5: return 'ROA Terbit';
-      case 6: return 'COA Terbit';
-      default: return 'Unknown';
-    }
-  };
-
-  const StepItem = ({ step, title, date, person, notes, completed }) => (
-    <div className={`border-l-4 ${completed ? 'border-green-500' : 'border-gray-300'} pl-4 pb-6`}>
-      <div className={`flex items-center mb-2 ${completed ? 'text-green-600' : 'text-gray-500'}`}>
-        {step === 1 && <Truck className="w-5 h-5 mr-2" />}
-        {step === 2 && <PackageCheck className="w-5 h-5 mr-2" />}
-        {step === 3 && <FlaskConical className="w-5 h-5 mr-2" />}
-        {step === 4 && <FileCheck className="w-5 h-5 mr-2" />}
-        {step === 5 && <ClipboardCheck className="w-5 h-5 mr-2" />}
-        {step === 6 && <CheckCircle className="w-5 h-5 mr-2" />}
-        <h3 className={`font-semibold ${completed ? 'text-green-600' : 'text-gray-500'}`}>{title}</h3>
-      </div>
-      
-      {completed ? (
-        <div className="ml-7 text-sm">
-          <p className="flex items-center mb-1">
-            <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-            <span>{formatDate(date)}</span>
-          </p>
-          {person && (
-            <p className="flex items-center mb-1">
-              <User className="w-4 h-4 mr-2 text-gray-500" />
-              <span>{person}</span>
-            </p>
-          )}
-          {notes && (
-            <p className="flex items-start mb-1">
-              <Info className="w-4 h-4 mr-2 mt-1 text-gray-500" />
-              <span>{notes}</span>
-            </p>
-          )}
-          {step === 5 && (
-            <button
-              onClick={handleDownloadROA}
-              className="flex items-center mt-2 text-blue-500 hover:text-blue-600"
-            >
-              <Download className="w-4 h-4 mr-1" /> Download ROA
-            </button>
-          )}
-          {step === 6 && (
-            <button
-              onClick={handleDownloadCOA}
-              className="flex items-center mt-2 text-blue-500 hover:text-blue-600"
-            >
-              <Download className="w-4 h-4 mr-1" /> Download COA
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="ml-7 text-sm text-gray-400">
-          <p>Belum selesai</p>
-        </div>
-      )}
-    </div>
-  );
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6 flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
+      <div className="p-6 flex justify-center items-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="ml-2">Loading...</span>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !sample) {
     return (
-      <div className="p-4 md:p-6">
-        <div className="bg-red-50 p-4 rounded-md">
-          <h2 className="text-red-600 font-semibold mb-2">Error</h2>
-          <p>{error}</p>
-          <button 
-            onClick={handleBackClick}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
-          </button>
+      <div className="p-6">
+        <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded-md mb-4">
+          <p>Error: {error || 'Sample not found'}</p>
         </div>
+        <button 
+          onClick={handleBack} 
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded flex items-center gap-2"
+        >
+          <ArrowLeft size={16} /> Kembali
+        </button>
       </div>
     );
   }
 
-  if (!sample) {
-    return (
-      <div className="p-4 md:p-6">
-        <div className="bg-yellow-50 p-4 rounded-md">
-          <h2 className="text-yellow-600 font-semibold mb-2">Sample Tidak Ditemukan</h2>
-          <p>Data sample yang dicari tidak tersedia.</p>
-          <button 
-            onClick={handleBackClick}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const currentStatus = getStepStatus(sample);
+  
+  const statusText = (statusCode) => {
+    switch(statusCode) {
+      case 0: return "Baru Dibuat";
+      case 1: return "Dikirim";
+      case 2: return "Diterima";
+      case 3: return "Preparasi Selesai";
+      case 4: return "Analisa Selesai";
+      case 5: return "ROA Terbit";
+      case 6: return "COA Terbit";
+      default: return "Unknown";
+    }
+  };
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6 flex justify-between items-center">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <button 
-            onClick={handleBackClick}
-            className="p-2 mr-4 bg-white rounded-full shadow hover:bg-gray-100"
+            onClick={handleBack} 
+            className="mr-4 p-2 hover:bg-gray-100 rounded-full"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft size={20} />
           </button>
-          <h1 className="text-2xl font-bold">Detail Sample</h1>
+          <h1 className="text-2xl font-bold">Detail Sample: {sample.sample_code}</h1>
         </div>
         
-        <div className="flex items-center">
-          <span className={`px-3 py-1 rounded-full text-sm ${
-            currentStatus === 6 ? 'bg-green-100 text-green-800' : 
-            currentStatus >= 3 ? 'bg-blue-100 text-blue-800' : 
-            'bg-yellow-100 text-yellow-800'
-          }`}>
-            {getStatusText(currentStatus)}
-          </span>
-        </div>
+        <button
+          onClick={handleEdit}
+          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-2"
+        >
+          <Edit size={16} /> Edit
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2 className="font-semibold mb-4 flex items-center text-lg">
-            <Package className="w-5 h-5 mr-2 text-blue-500" /> Detail Sample
-          </h2>
-          <div className="space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Sample Status Card */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Status Sample</h2>
+          <div className="flex items-center mb-4">
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              currentStatus === 6 ? 'bg-green-100 text-green-800' :
+              currentStatus >= 4 ? 'bg-blue-100 text-blue-800' :
+              currentStatus >= 2 ? 'bg-yellow-100 text-yellow-800' :
+              'bg-gray-100 text-gray-800'
+            }`}>
+              {statusText(currentStatus)}
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            <div className={`flex items-start ${currentStatus >= 1 ? 'text-green-600' : 'text-gray-400'}`}>
+              <Truck className="w-5 h-5 mr-3 mt-0.5" />
+              <div>
+                <p className="font-medium">Dikirim</p>
+                <p className="text-sm text-gray-600">{formatDate(sample.sent_date)}</p>
+              </div>
+            </div>
+            
+            <div className={`flex items-start ${currentStatus >= 2 ? 'text-green-600' : 'text-gray-400'}`}>
+              <PackageCheck className="w-5 h-5 mr-3 mt-0.5" />
+              <div>
+                <p className="font-medium">Diterima</p>
+                <p className="text-sm text-gray-600">{formatDate(sample.received_date)}</p>
+              </div>
+            </div>
+            
+            <div className={`flex items-start ${currentStatus >= 3 ? 'text-green-600' : 'text-gray-400'}`}>
+              <FlaskConical className="w-5 h-5 mr-3 mt-0.5" />
+              <div>
+                <p className="font-medium">Preparasi Selesai</p>
+                <p className="text-sm text-gray-600">{formatDate(sample.preparation_completed_date)}</p>
+              </div>
+            </div>
+            
+            <div className={`flex items-start ${currentStatus >= 4 ? 'text-green-600' : 'text-gray-400'}`}>
+              <FileCheck className="w-5 h-5 mr-3 mt-0.5" />
+              <div>
+                <p className="font-medium">Analisa Selesai</p>
+                <p className="text-sm text-gray-600">{formatDate(sample.analysis_completed_date)}</p>
+              </div>
+            </div>
+            
+            <div className={`flex items-start ${currentStatus >= 5 ? 'text-green-600' : 'text-gray-400'}`}>
+              <ClipboardCheck className="w-5 h-5 mr-3 mt-0.5" />
+              <div>
+                <p className="font-medium">ROA Terbit</p>
+                <p className="text-sm text-gray-600">{formatDate(sample.roa_issued_date)}</p>
+              </div>
+            </div>
+            
+            <div className={`flex items-start ${currentStatus >= 6 ? 'text-green-600' : 'text-gray-400'}`}>
+              <CheckCircle className="w-5 h-5 mr-3 mt-0.5" />
+              <div>
+                <p className="font-medium">COA Terbit</p>
+                <p className="text-sm text-gray-600">{formatDate(sample.coa_issued_date)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sample Details Card */}
+        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold mb-4">Informasi Sample</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Kode Sample</p>
               <p className="font-medium">{sample.sample_code || '-'}</p>
             </div>
+            
             <div>
-              <p className="text-sm text-gray-500">Jumlah</p>
-              <p className="font-medium">{sample.quantity || '-'}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2 className="font-semibold mb-4 flex items-center text-lg">
-            <User className="w-5 h-5 mr-2 text-blue-500" /> Pengirim
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-500">Nama Pengirim</p>
+              <p className="text-sm text-gray-500">Pengirim</p>
               <p className="font-medium">{sample.sender_name || '-'}</p>
             </div>
+            
             <div>
-              <p className="text-sm text-gray-500">Quantity</p>
-              <p className="font-medium">{sample.received_quantity || '-'}</p>
+              <p className="text-sm text-gray-500">Jenis Sample</p>
+              <p className="font-medium">{sample.sample_type || '-'}</p>
             </div>
+            
             <div>
-              <p className="text-sm text-gray-500">Received Date</p>
-              <p className="font-medium">{sample.received_date || '-'}</p>
+              <p className="text-sm text-gray-500">Kuantitas</p>
+              <p className="font-medium">{sample.quantity || '-'}</p>
             </div>
+            
             <div>
-              <p className="text-sm text-gray-500">Received by</p>
-              <p className="font-medium">{sample.received_by || '-'}</p>
+              <p className="text-sm text-gray-500">Tanggal Dibuat</p>
+              <p className="font-medium">{formatDate(sample.created_at)}</p>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2 className="font-semibold mb-4 flex items-center text-lg">
-            <FileText className="w-5 h-5 mr-2 text-blue-500" /> Dokumen & Parameter
-          </h2>
-          <div className="space-y-3">
+            
             <div>
-              <p className="text-sm text-gray-500">Analyst By</p>
-              <p className="font-medium">{sample.analyzed_by || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Parameter Uji</p>
-              <p className="font-medium">{sample.analysis_notes || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Status ROA</p>
-              <p className="font-medium flex items-center">
-                {sample.roa_issued_date ? (
-                  <>
-                    <CheckSquare className="w-4 h-4 mr-1 text-green-500" /> 
-                    Terbit ({formatDate(sample.roa_issued_date)})
-                  </>
-                ) : (
-                  'Belum Terbit'
-                )}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Status COA</p>
-              <p className="font-medium flex items-center">
-                {sample.coa_issued_date ? (
-                  <>
-                    <CheckSquare className="w-4 h-4 mr-1 text-green-500" /> 
-                    Terbit ({formatDate(sample.coa_issued_date)})
-                  </>
-                ) : (
-                  'Belum Terbit'
-                )}
-              </p>
+              <p className="text-sm text-gray-500">Terakhir Diupdate</p>
+              <p className="font-medium">{formatDate(sample.updated_at)}</p>
             </div>
           </div>
+          
+          {sample.notes && (
+            <div className="mt-6">
+              <p className="text-sm text-gray-500 mb-1">Catatan</p>
+              <p>{sample.notes}</p>
+            </div>
+          )}
         </div>
       </div>
-
-      <div className="bg-white p-5 rounded-lg shadow-md mb-8">
-        <h2 className="font-semibold mb-6 flex items-center text-lg">
-          <Calendar className="w-5 h-5 mr-2 text-blue-500" /> Timeline Tracking
-        </h2>
-        
-        <div className="ml-2">
-          <StepItem 
-            step={1}
-            title="Pengiriman Sample" 
-            date={sample.sent_date}
-            person={sample.sender_name}
-            notes={sample.sending_notes}
-            completed={!!sample.sent_date}
-          />
-          
-          <StepItem 
-            step={2}
-            title="Penerimaan Sample" 
-            date={sample.received_date}
-            person={sample.receiver_name}
-            notes={sample.receiving_notes}
-            completed={!!sample.received_date}
-          />
-          
-          <StepItem 
-            step={3}
-            title="Preparasi Sample" 
-            date={sample.preparation_completed_date}
-            person={sample.preparation_by}
-            notes={sample.preparation_notes}
-            completed={!!sample.preparation_completed_date}
-          />
-          
-          <StepItem 
-            step={4}
-            title="Analisa Sample" 
-            date={sample.analysis_completed_date}
-            person={sample.analyzed_by}
-            notes={sample.analysis_notes}
-            completed={!!sample.analysis_completed_date}
-          />
-          
-          <StepItem 
-            step={5}
-            title="Penerbitan ROA" 
-            date={sample.roa_issued_date}
-            person={sample.roa_issued_by}
-            notes={sample.roa_notes}
-            completed={!!sample.roa_issued_date}
-          />
-          
-          <StepItem 
-            step={6}
-            title="Penerbitan COA" 
-            date={sample.coa_issued_date}
-            person={sample.coa_issued_by}
-            notes={sample.coa_notes}
-            completed={!!sample.coa_issued_date}
-          />
-        </div>
-      </div>
-
-      {sample.test_results && (
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2 className="font-semibold mb-6 flex items-center text-lg">
-            <FileCheck className="w-5 h-5 mr-2 text-blue-500" /> Hasil Analisa
-          </h2>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-3">Parameter</th>
-                  <th className="p-3">Metode</th>
-                  <th className="p-3">Hasil</th>
-                  <th className="p-3">Satuan</th>
-                  <th className="p-3">Nilai Acuan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.isArray(sample.test_results) ? (
-                  sample.test_results.map((result, index) => (
-                    <tr key={index} className="border-t">
-                      <td className="p-3">{result.parameter}</td>
-                      <td className="p-3">{result.method}</td>
-                      <td className="p-3 font-medium">{result.value}</td>
-                      <td className="p-3">{result.unit}</td>
-                      <td className="p-3">{result.reference_value}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="p-3 text-center text-gray-500">
-                      Data hasil analisa tidak tersedia
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
