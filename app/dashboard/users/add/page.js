@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import MenuSelect from "@/components/menu/MenuSelect";
+import MenuSelect from "@/components/Menu/MenuSelect";
 
 export default function AddUserPage() {
   const [email, setEmail] = useState("");
