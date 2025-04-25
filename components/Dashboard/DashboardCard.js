@@ -1,7 +1,7 @@
 import { 
   ClipboardList, 
   ClipboardCheck, 
-  FileInvoice, 
+  FileText, 
   Ship, 
   Activity 
 } from 'lucide-react';
@@ -15,7 +15,7 @@ export default function DashboardCard({ title, stats, color = "bg-gray-100", ico
       case 'clipboard-check':
         return <ClipboardCheck size={20} />;
       case 'file-invoice':
-        return <FileInvoice size={20} />;
+        return <FileText size={20} />;
       case 'ship':
         return <Ship size={20} />;
       case 'activity':
