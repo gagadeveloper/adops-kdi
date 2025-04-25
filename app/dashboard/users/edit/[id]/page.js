@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import MenuSelect from '@/components/menu/MenuSelect';
+import MenuSelect from '@/components/Menu/MenuSelect';
 
 export default function EditUserPage() {
   const [user, setUser] = useState({
