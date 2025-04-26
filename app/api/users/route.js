@@ -1,10 +1,10 @@
-import { pool } from '../../../lib/db'; 
+import { query } from '../../../lib/db'; 
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   try {
     // Query untuk mendapatkan semua users
-    const result = await pool.query('SELECT id, email, name, department, position, "roleId", status FROM "User"');
+    const result = await query('SELECT id, email, name, department, position, "roleId", status FROM "User"');
     
     console.log('Retrieved users:', result.rows); // Debugging di terminal
     
