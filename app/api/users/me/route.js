@@ -5,6 +5,7 @@ import { pool } from '@/lib/db';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
+export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     // Ambil token dari cookie

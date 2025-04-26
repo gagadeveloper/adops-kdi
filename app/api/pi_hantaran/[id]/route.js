@@ -2,6 +2,7 @@
 import { pool } from '@/lib/db'; // Adjust this path
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
 export async function GET(request, { params }) {
   const id = params.id;
   
