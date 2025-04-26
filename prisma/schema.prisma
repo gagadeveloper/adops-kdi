@@ -61,7 +61,7 @@ model Permission {
 model RolePermission {
   id           String      @id @default(dbgenerated("uuid_generate_v4()"))
   roleId       Int
-  permissionId String
+  permissionId Int         // Ubah dari String menjadi Int
   Role         Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
   Permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 }
