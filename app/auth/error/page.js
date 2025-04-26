@@ -1,45 +1,19 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
 import Link from 'next/link';
 
-export default function AuthError() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error');
-  
-  useEffect(() => {
-    console.error('Authentication Error:', error);
-  }, [error]);
-  
-  // Terjemahkan error message
-  const getErrorMessage = () => {
-    switch(error) {
-      case 'CredentialsSignin':
-        return 'Email atau password salah';
-      case 'SessionRequired':
-        return 'Anda perlu login untuk mengakses halaman ini';
-      case 'Configuration':
-        return 'Terjadi masalah pada konfigurasi autentikasi';
-      default:
-        return error || 'Terjadi kesalahan saat login';
-    }
-  };
-  
+// Halaman error statis tanpa useSearchParams
+export default function AuthErrorPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center text-red-600">
-          Error Autentikasi
-        </h1>
-        
-        <div className="p-4 bg-red-50 rounded-md border border-red-200">
-          <p className="text-red-700">{getErrorMessage()}</p>
-        </div>
-        
+    <div className="flex flex-col items-center justify-center min-h-screen px-4">
+      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
         <div className="text-center">
-          <Link href="/login" className="text-blue-600 hover:underline">
-            Kembali ke halaman login
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error Autentikasi</h1>
+          <div className="bg-red-50 p-4 rounded-md mb-4">
+            <p className="text-red-800">Terjadi kesalahan saat proses autentikasi. Silakan coba lagi.</p>
+          </div>
+          <Link href="/auth/login" className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Kembali ke Login
           </Link>
         </div>
       </div>
