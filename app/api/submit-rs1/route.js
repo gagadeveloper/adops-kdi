@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = 'force-dynamic';
 export async function POST(req) {
   try {
     console.log("🔹 Menerima request...");

@@ -10,6 +10,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+export const dynamic = 'force-dynamic';
 // Untuk Next.js App Router
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
