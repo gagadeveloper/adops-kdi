@@ -198,7 +198,7 @@ export default function LoginPage() {
             
             {/* Footer */}
             <div className="mt-6 text-center text-xs text-gray-500">
-              © {new Date().getFullYear()} SIMAK. All rights reserved
+              © {new Date().getFullYear()} SIMAK. All rights reserved.
             </div>
           </div>
         </div>
