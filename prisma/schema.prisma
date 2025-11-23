@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Permission {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  description    String?
+  RolePermission RolePermission[]
+}
+
+model Role {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique @db.VarChar(50)
+  RolePermission RolePermission[]
+  role_menus     role_menus[]
+  users          User[]
+}
+
+model RolePermission {
+  id           String     @id
+  roleId       Int
+  permissionId Int
+  Permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  Role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  name         String?
+  email        String       @unique
+  createdAt    DateTime     @default(now())
+  department   String?
+  employeeId   String?
+  password_hash String
+  position     String?
+  roleId       Int
+  status       String       @default("active")
+  updatedAt    DateTime     @default(now())
+  bank_account String?
+  bank_name    String?
+  address      String?
+  location     String?      @default("Makassar")
+  user_menus   user_menus[]
+  Role         Role         @relation(fields: [roleId], references: [id])
+}
+
+model menus {
+  id          Int          @id @default(autoincrement())
+  menu_name   String       @db.VarChar(255)
+  icon        String?      @db.VarChar(50)
+  path        String?      @db.VarChar(255)
+  menu_order  Int?
+  parent_id   Int?
+  menus       menus?       @relation("menusTomenus", fields: [parent_id], references: [id], onUpdate: NoAction)
+  other_menus menus[]      @relation("menusTomenus")
+  role_menus  role_menus[]
+  user_menus  user_menus[]
+}
+
+model role_menus {
+  id      Int    @id(map: "RoleMenu_pkey") @default(autoincrement())
+  role_id Int?
+  menu_id Int?
+  menus   menus? @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "RoleMenu_menuId_fkey")
+  Role    Role?  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "RoleMenu_roleId_fkey")
+}
+
+model user_menus {
+  id      Int    @id @default(autoincrement())
+  user_id Int?
+  menu_id Int?
+  menus   menus? @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User    User?  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model orders {
+  id                        Int       @id
+  sample_order_no           String    @db.VarChar(50)
+  sender                    String    @db.VarChar(100)
+  phone                     String    @db.VarChar(20)
+  email                     String    @db.VarChar(100)
+  address                   String    @db.Text
+  total_qty                 Int
+  attachment                String?   @db.VarChar(255)
+  notes                     String?   @db.Text
+  pic                       String    @db.VarChar(100)
+  pic_phone                 String    @db.VarChar(20)
+  signed                    String?   @default("false") @db.Text
+  date                      DateTime? @default(now()) @db.Timestamptz
+  created_at                DateTime? @default(now()) @db.Timestamptz
+  updated_at                DateTime? @default(now()) @db.Timestamptz
+  attachment_path           String?   @db.VarChar(255)
+  attachment_name           String?   @db.VarChar(255)
+  client_order_no           String?   @db.Text
+  hold_7_days_storage       Boolean?  @default(false)
+  hold_1_month_storage      Boolean?  @default(false)
+  hold_custom_months_storage Int?     @default(0)
+  signed_photo_path         String?   @db.VarChar(255)
+  signed_photo_name         String?   @db.VarChar(255)
+  clients                   clients?  @relation(fields: [sender], references: [id])
+  samples                   samples[]
+}
+
+model clients {
+  id         String    @id @db.VarChar(36)
+  name       String    @db.VarChar(100)
+  phone      String?   @db.VarChar(20)
+  email      String?   @db.VarChar(100)
+  address    String?   @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp
+  updated_at DateTime? @default(now()) @db.Timestamp
+  orders     orders[]
+}
+
+model clients_shipment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(255)
+  phone      String   @db.VarChar(50)
+  email      String   @db.VarChar(255)
+  address    String   @db.Text
+  created_at DateTime? @default(now()) @db.Timestamptz
+  updated_at DateTime? @default(now()) @db.Timestamptz
+}
+
+model tracking_samples {
+  id                        Int       @id
+  sample_code               String    @db.VarChar(50)
+  sender_name               String    @db.VarChar(100)
+  quantity                  Int
+  barcode_seal              String?   @db.VarChar(100)
+  driver_name               String?   @db.VarChar(100)
+  plate_number              String?   @db.VarChar(20)
+  photo_url                 String?   @db.VarChar(255)
+  sent_date                 DateTime? @db.Timestamp
+  sent_by                   String?   @db.VarChar(100)
+  receiver_name             String?   @db.VarChar(100)
+  received_quantity         Int?
+  received_photo_url        String?   @db.VarChar(255)
+  received_date             DateTime? @db.Timestamp
+  received_by               String?   @db.VarChar(100)
+  preparation_status        String?   @db.VarChar(50)
+  preparation_notes         String?   @db.Text
+  preparation_started_date  DateTime? @db.Timestamp
+  preparation_completed_date DateTime? @db.Timestamp
+  prepared_by               String?   @db.VarChar(100)
+  analysis_status           String?   @db.VarChar(50)
+  analysis_notes            String?   @db.Text
+  analysis_started_date     DateTime? @db.Timestamp
+  analysis_completed_date   DateTime? @db.Timestamp
+  analyzed_by               String?   @db.VarChar(100)
+  roa_status                String?   @db.VarChar(50)
+  roa_document_url          String?   @db.VarChar(255)
+  roa_created_date          DateTime? @db.Timestamp
+  roa_issued_date           DateTime? @db.Timestamp
+  roa_created_by            String?   @db.VarChar(100)
+  coa_draft_url             String?   @db.VarChar(255)
+  coa_draft_date            DateTime? @db.Timestamp
+  coa_review_status         String?   @db.VarChar(50)
+  coa_reviewer              String?   @db.VarChar(100)
+  coa_review_date           DateTime? @db.Timestamp
+  coa_document_url          String?   @db.VarChar(255)
+  coa_created_date          DateTime? @db.Timestamp
+  coa_issued_date           DateTime? @db.Timestamp
+  coa_created_by            String?   @db.VarChar(100)
+  created_at                DateTime? @default(now()) @db.Timestamp
+  updated_at                DateTime? @default(now()) @db.Timestamp
+  coa_path                  String?   @db.VarChar(255)
+  roa_path                  String?   @db.VarChar(255)
+  lokasi_site               String?   @db.VarChar(255)
+  document_url              String?   @db.VarChar(255)
+}
+
+// Adding the samples model that was missing but is referenced in your error logs
+model samples {
+  id         Int     @id @default(autoincrement())
+  order_id   Int
+  quantity   Int
+  orders     orders  @relation(fields: [order_id], references: [id])
+}

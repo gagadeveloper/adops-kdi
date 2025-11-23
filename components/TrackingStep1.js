@@ -1,0 +1,431 @@
+//app/components/TrackingStep1
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  ArrowLeft, Upload, Loader2, Save, X, FileText
+} from 'lucide-react';
+
+export default function Step1Page({ params }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    sender_name: '',
+    sample_code: '',
+    quantity: '',
+    barcode_seal: '',
+    driver_name: '',
+    plate_number: '',
+    lokasi_site: '',
+    photo_url: null,
+    document_url: null
+  });
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [documentName, setDocumentName] = useState(null);
+  const [error, setError] = useState('');
+  const sampleId = params?.sampleId; // ID sampel jika ada
+  
+  // Fetch existing data if we're editing a sample
+  useEffect(() => {
+    if (sampleId) {
+      setLoading(true);
+      fetch(`/api/tracking-samples/${sampleId}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch sample data');
+          return res.json();
+        })
+        .then(data => {
+          console.log("Retrieved sample data:", data);
+          setFormData({
+            sender_name: data.sender_name || '',
+            sample_code: data.sample_code || '',
+            quantity: data.quantity || '',
+            barcode_seal: data.barcode_seal || '',
+            driver_name: data.driver_name || '',
+            plate_number: data.plate_number || '',
+            lokasi_site: data.lokasi_site || '',
+            photo_url: '',
+            document_url: ''
+          });
+          
+          // If there's an existing photo URL
+          if (data.photo_url) {
+            setPreviewUrl(data.photo_url);
+          }
+          
+          // If there's an existing document
+          if (data.document_url) {
+            // Extract the filename from the path
+            const fileName = data.document_url.split('/').pop();
+            setDocumentName(fileName);
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching sample:', err);
+          setError('Gagal mengambil data sample. Silakan coba lagi.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [sampleId]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size - limit to 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Ukuran foto terlalu besar. Maksimal 5MB.');
+        return;
+      }
+      
+      // Create preview URL for image
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setFormData(prev => ({ ...prev, photo_url: file }));
+    }
+  };
+
+  const handleDocumentChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size - limit to 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Ukuran dokumen terlalu besar. Maksimal 5MB.');
+        return;
+      }
+      
+      setDocumentName(file.name);
+      setFormData(prev => ({ ...prev, document_url: file }));
+    }
+  };
+
+  const removeImage = () => {
+    setPreviewUrl(null);
+    setFormData(prev => ({ ...prev, photo_url: null }));
+  };
+
+  const removeDocument = () => {
+    setDocumentName(null);
+    setFormData(prev => ({ ...prev, document_url: null }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+
+    try {
+      // Validate required fields
+      if (!formData.sender_name || !formData.sample_code || !formData.quantity || !formData.lokasi_site) {
+        throw new Error('Nama pengirim, kode sample, lokasi site, dan jumlah harus diisi');
+      }
+
+      // Create FormData object for file upload
+      const data = new FormData();
+      
+      // Add all form fields to FormData
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          data.append(key, formData[key]);
+        }
+      });
+
+      // Add current date as sent_date
+      data.append('sent_date', new Date().toISOString());
+      
+      console.log("Submitting form data:", Object.fromEntries(data));
+      
+      // Determine endpoint and method based on whether we're creating or updating
+      const endpoint = sampleId 
+        ? `/api/tracking-samples/step1/${sampleId}` 
+        : '/api/tracking-samples/step1';
+      
+      const method = sampleId ? 'PUT' : 'POST';
+      
+      console.log(`Sending ${method} request to ${endpoint}`);
+      
+      // Send data to API - TAMBAHKAN LOGGING ERROR DETIL
+      const response = await fetch(endpoint, {
+        method,
+        body: data,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(e => ({ message: `HTTP Error: ${response.status}` }));
+        console.error('Response error:', response.status, errorData);
+        throw new Error(errorData.message || `Error ${response.status}: Terjadi kesalahan saat menyimpan data`);
+      }
+
+      console.log("Form submitted successfully!");
+      
+      // Redirect back to dashboard after successful submission
+      router.push('/dashboard/adopsi/tracking-samples');
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setError(error.message || 'Terjadi kesalahan. Silakan coba lagi.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-2">Loading...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-3xl mx-auto bg-white rounded-md shadow-md">
+        <div className="border-b p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => router.back()}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-semibold">
+              {sampleId ? 'Update Pengiriman Sample' : 'Tambah Sample Baru'}
+            </h1>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="sender_name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama Pengirim
+                </label>
+                <input
+                  type="text"
+                  id="sender_name"
+                  name="sender_name"
+                  value={formData.sender_name}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="sample_code" className="block text-sm font-medium text-gray-700 mb-1">
+                  Kode Sample
+                </label>
+                <input
+                  type="text"
+                  id="sample_code"
+                  name="sample_code"
+                  value={formData.sample_code}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="lokasi_site" className="block text-sm font-medium text-gray-700 mb-1">
+                  Lokasi Site
+                </label>
+                <input
+                  type="text"
+                  id="lokasi_site"
+                  name="lokasi_site"
+                  value={formData.lokasi_site}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                  Jumlah Sample
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="barcode_seal" className="block text-sm font-medium text-gray-700 mb-1">
+                  Barcode Segel
+                </label>
+                <input
+                  type="text"
+                  id="barcode_seal"
+                  name="barcode_seal"
+                  value={formData.barcode_seal}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="driver_name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama Driver
+                </label>
+                <input
+                  type="text"
+                  id="driver_name"
+                  name="driver_name"
+                  value={formData.driver_name}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="plate_number" className="block text-sm font-medium text-gray-700 mb-1">
+                  Plat Nomor
+                </label>
+                <input
+                  type="text"
+                  id="plate_number"
+                  name="plate_number"
+                  value={formData.plate_number}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Foto Sample
+                </label>
+                
+                {!previewUrl ? (
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className="space-y-1 text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label htmlFor="photo-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                          <span>Upload file</span>
+                          <input id="photo-upload" name="photo-upload" type="file" accept="image/*" onChange={handlePhotoChange} className="sr-only" />
+                        </label>
+                        <p className="pl-1">atau drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-1 relative">
+                    <div className="relative">
+                      <img src={previewUrl} alt="Preview" className="w-full h-48 object-cover rounded-md" />
+                      <button 
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Document Samples
+                </label>
+                
+                {!documentName ? (
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className="space-y-1 text-center">
+                      <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label htmlFor="document-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                          <span>Upload file</span>
+                          <input 
+                            id="document-upload" 
+                            name="document-upload" 
+                            type="file" 
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
+                            onChange={handleDocumentChange} 
+                            className="sr-only" 
+                          />
+                        </label>
+                        <p className="pl-1">atau drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">PDF, DOC, DOCX, XLS, XLSX up to 10MB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-1 relative p-4 border border-gray-300 rounded-md">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <FileText className="h-6 w-6 text-blue-500 mr-2" />
+                        <span className="text-sm font-medium">{documentName}</span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={removeDocument}
+                        className="p-1 bg-white rounded-full shadow-sm hover:bg-gray-100"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center space-x-2"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Simpan</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
