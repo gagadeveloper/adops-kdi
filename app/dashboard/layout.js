@@ -162,7 +162,6 @@ export default function DashboardLayout({ children }) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
-    const [changeBankModalOpen, setChangeBankModalOpen] = useState(false);
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [searchFocused, setSearchFocused] = useState(false);
@@ -243,12 +242,12 @@ export default function DashboardLayout({ children }) {
         setSidebarOpen(!sidebarOpen);
     };
 
-    // // Sample notifications data
-    // const notifications = [
-    //     { id: 1, title: "Pengumuman Sistem", message: "Pemeliharaan sistem akan dilakukan besok pukul 22:00", time: "5 menit yang lalu", read: false },
-    //     { id: 2, title: "Tugas Baru", message: "Ada 3 tugas baru yang harus diselesaikan", time: "1 jam yang lalu", read: true },
-    //     { id: 3, title: "Pengingat", message: "Rapat koordinasi pukul 13:00 hari ini", time: "3 jam yang lalu", read: true },
-    // ];
+    // Sample notifications data
+    const notifications = [
+        { id: 1, title: "Pengumuman Sistem", message: "Pemeliharaan sistem akan dilakukan besok pukul 22:00", time: "5 menit yang lalu", read: false },
+        { id: 2, title: "Tugas Baru", message: "Ada 3 tugas baru yang harus diselesaikan", time: "1 jam yang lalu", read: true },
+        { id: 3, title: "Pengingat", message: "Rapat koordinasi pukul 13:00 hari ini", time: "3 jam yang lalu", read: true },
+    ];
 
     return (
         <div className="flex h-screen bg-gray-50 text-gray-800 overflow-hidden">
@@ -353,29 +352,12 @@ export default function DashboardLayout({ children }) {
                             <Menu className="w-5 h-5" />
                         </button>
                         
-                        {/* Search bar */}
-                        {/* <div 
-                            ref={searchRef}
-                            className={`hidden md:flex items-center rounded-lg border ${searchFocused ? 'border-blue-400 ring-2 ring-blue-50' : 'border-gray-200'} px-3 py-2 w-64 transition-all`}
-                        >
-                            <Search className="w-4 h-4 text-gray-400 mr-2" />
-                            <input 
-                                type="text" 
-                                placeholder="Cari..."
-                                className="bg-transparent outline-none text-sm w-full"
-                                onFocus={() => setSearchFocused(true)}
-                                onBlur={() => setSearchFocused(false)}
-                            />
-                        </div> */}
                         <div className="max-w-7xl mx-auto">
                             <h1 className="text-xl font-semibold text-gray-800">
                                 SIMAK RO. Kendari - {session?.user?.name}!
                             </h1>
-                            {/* <p className="text-sm text-gray-500 mt-1">
-                                Adops System Kantor Regional Kendari
-                            </p> */}
                         </div>
-                        </div>
+                    </div>
                     
                     {/* Page title for mobile view */}
                     <div className="md:hidden">
@@ -457,16 +439,6 @@ export default function DashboardLayout({ children }) {
                                         <Settings className="w-4 h-4 mr-3 text-gray-500" />
                                         Ubah Password
                                     </button>
-                                    <button 
-                                        className="flex w-full items-center text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                                        onClick={() => {
-                                            setChangeBankModalOpen(true);
-                                            setDropdownOpen(false);
-                                        }}
-                                    >
-                                        <Settings className="w-4 h-4 mr-3 text-gray-500" />
-                                        Ubah Rekening Bank
-                                    </button>
                                     
                                     {/* Divider */}
                                     <div className="border-t border-gray-100 my-1"></div>
@@ -491,18 +463,6 @@ export default function DashboardLayout({ children }) {
                         </div>
                     </div>
                 </header>
-
-                {/* Page title bar */}
-                {/* <div className="bg-white shadow-sm p-4 border-b border-gray-200 hidden md:block">
-                    <div className="max-w-7xl mx-auto">
-                        <h1 className="text-xl font-semibold text-gray-800">
-                            SIMAK RO. Kendari - {session?.user?.name}!
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Adops System Kantor Regional Kendari
-                        </p>
-                    </div>
-                </div> */}
 
                 {/* Main content with softer background */}
                 <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
