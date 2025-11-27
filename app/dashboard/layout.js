@@ -121,98 +121,6 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
   );
 };
 
-// Change Bank Modal with enhanced UI
-const ChangeBankModal = ({ isOpen, onClose }) => {
-  const [bankName, setBankName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountName, setAccountName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Add your bank change logic here
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      onClose();
-    }, 1000);
-  };
-  
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Ubah Rekening Bank">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nama Bank
-          </label>
-          <select
-            value={bankName}
-            onChange={(e) => setBankName(e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all appearance-none bg-white"
-            required
-          >
-            <option value="">Pilih Bank</option>
-            <option value="BCA">BCA</option>
-            <option value="BNI">BNI</option>
-            <option value="BRI">BRI</option>
-            <option value="Mandiri">Mandiri</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nomor Rekening
-          </label>
-          <input
-            type="text"
-            value={accountNumber}
-            onChange={(e) => setAccountNumber(e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nama Pemilik Rekening
-          </label>
-          <input
-            type="text"
-            value={accountName}
-            onChange={(e) => setAccountName(e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-            required
-          />
-        </div>
-        <div className="flex justify-end pt-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="mr-3 px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            className="px-5 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 shadow-sm hover:shadow transition-all flex items-center"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <span className="mr-2">Sedang Proses</span>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              </>
-            ) : (
-              'Simpan Perubahan'
-            )}
-          </button>
-        </div>
-      </form>
-    </Modal>
-  );
-};
-
 // Logout Confirmation Modal with enhanced UI
 const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
   return (
@@ -335,12 +243,12 @@ export default function DashboardLayout({ children }) {
         setSidebarOpen(!sidebarOpen);
     };
 
-    // Sample notifications data
-    const notifications = [
-        { id: 1, title: "Pengumuman Sistem", message: "Pemeliharaan sistem akan dilakukan besok pukul 22:00", time: "5 menit yang lalu", read: false },
-        { id: 2, title: "Tugas Baru", message: "Ada 3 tugas baru yang harus diselesaikan", time: "1 jam yang lalu", read: true },
-        { id: 3, title: "Pengingat", message: "Rapat koordinasi pukul 13:00 hari ini", time: "3 jam yang lalu", read: true },
-    ];
+    // // Sample notifications data
+    // const notifications = [
+    //     { id: 1, title: "Pengumuman Sistem", message: "Pemeliharaan sistem akan dilakukan besok pukul 22:00", time: "5 menit yang lalu", read: false },
+    //     { id: 2, title: "Tugas Baru", message: "Ada 3 tugas baru yang harus diselesaikan", time: "1 jam yang lalu", read: true },
+    //     { id: 3, title: "Pengingat", message: "Rapat koordinasi pukul 13:00 hari ini", time: "3 jam yang lalu", read: true },
+    // ];
 
     return (
         <div className="flex h-screen bg-gray-50 text-gray-800 overflow-hidden">
@@ -608,11 +516,6 @@ export default function DashboardLayout({ children }) {
             <ResetPasswordModal 
                 isOpen={resetPasswordModalOpen} 
                 onClose={() => setResetPasswordModalOpen(false)} 
-            />
-            
-            <ChangeBankModal 
-                isOpen={changeBankModalOpen} 
-                onClose={() => setChangeBankModalOpen(false)} 
             />
             
             <LogoutConfirmationModal 
