@@ -125,7 +125,7 @@ export default function TrackingSampleDetail({ sampleId }) {
         { label: 'Tanggal Kirim', value: sample.sent_date ? new Date(sample.sent_date).toLocaleDateString('id-ID', {
           day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : '-' },
-        { label: 'Dikirim oleh', value: sample.sent_by || '-' }
+        
       ],
       attachments: [
         { label: 'Foto', url: sample.photo_url, type: 'image' },
